@@ -1,0 +1,208 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Consolas;}{\f1\fnil Consolas;}}
+{\colortbl ;\red0\green0\blue255;\red0\green0\blue0;\red43\green145\blue175;\red0\green128\blue0;\red163\green21\blue21;}
+\viewkind4\uc1\pard\cf1\f0\fs19 using\cf2  System;\par
+\cf1 using\cf2  System.Collections.Generic;\par
+\cf1 using\cf2  System.ComponentModel;\par
+\cf1 using\cf2  System.Data;\par
+\cf1 using\cf2  System.Drawing;\par
+\cf1 using\cf2  System.Linq;\par
+\cf1 using\cf2  System.Text;\par
+\cf1 using\cf2  System.Threading;\par
+\cf1 using\cf2  System.Threading.Tasks;\par
+\cf1 using\cf2  System.Windows.Forms;\par
+\cf1 using\cf2  System.Data.SQLite;\par
+\par
+\cf1 namespace\cf2  ProjectPratice\par
+\{\par
+    \cf1 public\cf2  \cf1 partial\cf2  \cf1 class\cf2  \cf3 MDI_Menu\cf2  : \cf3 Form\cf2\par
+    \{\par
+        \cf3 Form1\cf2  fm2;\par
+        \cf3 Members\cf2  mn;\par
+        \cf3 New_Meeting_Details\cf2  newMeeting;\par
+        \cf3 Minute_Editor\cf2  editor;\par
+        \cf3 AudioArchive\cf2  audioRepository;\par
+        \cf3 Notification\cf2  mailForm;\par
+        \cf3 Recording\cf2  audioRecForm;\par
+\par
+        \cf1 private\cf2  \cf3 SQLiteConnection\cf2  DBConnect;\par
+        \cf1 private\cf2  \cf3 SQLiteCommand\cf2  DBcommand;\par
+\par
+        \cf1 public\cf2  MDI_Menu()\par
+        \{\par
+            \cf4 //Thread t = new Thread(new ThreadStart(SplashStart));\cf2\par
+            \cf4 //t.Start();\cf2\par
+            \cf4 //Thread.Sleep(15000);\cf2\par
+            \cf4 //t.Abort();\cf2\par
+            InitializeComponent();\par
+            DBConnect= \cf1 new\cf2  \cf3 SQLiteConnection\cf2 (\cf5 "Data Source= dataBase.db;Compress= true;"\cf2 );\par
+            fm2 = \cf1 new\cf2  \cf3 Form1\cf2 ();\par
+            mn = \cf1 new\cf2  \cf3 Members\cf2 ();\par
+            newMeeting = \cf1 new\cf2  \cf3 New_Meeting_Details\cf2 ();\par
+            editor = \cf1 new\cf2  \cf3 Minute_Editor\cf2 ();\par
+            audioRepository = \cf1 new\cf2  \cf3 AudioArchive\cf2 ();\par
+            mailForm = \cf1 new\cf2  \cf3 Notification\cf2 ();\par
+            audioRecForm = \cf1 new\cf2  \cf3 Recording\cf2 ();\par
+\par
+        \}\par
+\par
+        \cf1 public\cf2  \cf1 void\cf2  SplashStart()\par
+        \{\par
+            \cf3 Application\cf2 .Run(\cf1 new\cf2  \cf3 SplashScreen\cf2 ());\par
+        \}\par
+        \cf1 private\cf2  \cf1 void\cf2  MDI_Menu_Load(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 foreach\cf2  (\cf3 Control\cf2  cntrl \cf1 in\cf2  \cf1 this\cf2 .Controls)\par
+            \{\par
+                \cf1 if\cf2  (cntrl \cf1 is\cf2  \cf3 MdiClient\cf2 )\par
+                \{\par
+                   cntrl.BackColor = \cf3 SystemColors\cf2 .ControlDark;\par
+                \}\par
+            \}\par
+            audioRecordingToolStripMenuItem.Visible = \cf1 false\cf2 ;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  attendanceToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (fm2.IsDisposed)\par
+            \{\par
+                fm2 = \cf1 new\cf2  \cf3 Form1\cf2 ();\par
+                fm2.Show();\par
+                fm2.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                fm2.Show();\par
+                fm2.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+            \cf1 if\cf2  (fm2.WindowState == \cf3 FormWindowState\cf2 .Minimized)\par
+                fm2.WindowState = \cf3 FormWindowState\cf2 .Normal;\par
+        \}\par
+\par
+       \par
+        \cf1 private\cf2  \cf1 void\cf2  meetingToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+\par
+            \cf1 if\cf2  (mn.IsDisposed)\par
+            \{\par
+                mn = \cf1 new\cf2  \cf3 Members\cf2 ();\par
+                mn.Show();\par
+                mn.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                mn.Show();\par
+                mn.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  goToMeetingToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 bool\cf2  alreadyEditingMinute = \cf1 false\cf2 ;\par
+            \cf3 FormCollection\cf2  fc = \cf3 Application\cf2 .OpenForms;\par
+\par
+            \cf1 foreach\cf2  (\cf3 Form\cf2  editor \cf1 in\cf2  fc)\par
+            \{\par
+                \cf1 if\cf2 (editor \cf1 is\cf2  \cf3 Minute_Editor\cf2 )\par
+                alreadyEditingMinute = \cf1 true\cf2 ;\par
+            \}\par
+\par
+            \cf1 if\cf2  (alreadyEditingMinute)\par
+            \{\par
+                \cf3 MessageBox\cf2 .Show(\cf5 "Close Minute Editor First"\cf2 );\par
+                \cf1 return\cf2 ;\par
+            \}\par
+\par
+            \cf1 if\cf2  (newMeeting.IsDisposed)\par
+            \{\par
+                newMeeting = \cf1 new\cf2  \cf3 New_Meeting_Details\cf2 ();\par
+                newMeeting.ShowDialog();\par
+                \cf4 //newMeeting.MdiParent = this;\cf2\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                newMeeting.ShowDialog();\par
+               \cf4 //newMeeting.MdiParent = this;\cf2\par
+            \}\par
+            \cf1 if\cf2 ( newMeeting.DialogResult== \cf3 DialogResult\cf2 .OK)\par
+            \{\par
+                audioRecordingToolStripMenuItem.Visible = \cf1 true\cf2 ;\par
+                editor = \cf1 new\cf2  \cf3 Minute_Editor\cf2 ();\par
+                editor.Show();\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  minutesToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (editor.IsDisposed)\par
+            \{\par
+                editor = \cf1 new\cf2  \cf3 Minute_Editor\cf2 ();\par
+                editor.Show();\par
+                editor.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                editor.Show();\par
+                editor.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  audioRecordingToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (audioRecForm.IsDisposed)\par
+            \{\par
+                audioRecForm = \cf1 new\cf2  \cf3 Recording\cf2 ();\par
+                audioRecForm.Show();\par
+                audioRecForm.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                audioRecForm.Show();\par
+                audioRecForm.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+            \par
+\par
+            \cf1 if\cf2  (audioRecForm.WindowState == \cf3 FormWindowState\cf2 .Minimized)\par
+                audioRecForm.WindowState = \cf3 FormWindowState\cf2 .Normal;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  audioArchivesToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (audioRepository.IsDisposed)\par
+            \{\par
+                audioRepository = \cf1 new\cf2  \cf3 AudioArchive\cf2 ();\par
+                audioRepository.Show();\par
+                audioRepository.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                audioRepository.Show();\par
+                audioRepository.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  notificationToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (mailForm.IsDisposed)\par
+            \{\par
+                mailForm = \cf1 new\cf2  \cf3 Notification\cf2 ();\par
+                mailForm.Show();\par
+                mailForm.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+\par
+            \cf1 else\cf2\par
+            \{\par
+                mailForm.Show();\par
+                mailForm.MdiParent = \cf1 this\cf2 ;\par
+            \}\par
+        \}\par
+\par
+    \}\par
+\}\cf1\f1\par
+}
+ 

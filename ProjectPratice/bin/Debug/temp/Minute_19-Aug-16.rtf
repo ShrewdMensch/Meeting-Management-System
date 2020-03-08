@@ -1,0 +1,303 @@
+{\rtf1\ansi\ansicpg1252\deff0\deflang1033{\fonttbl{\f0\fnil\fcharset0 Consolas;}{\f1\fnil Consolas;}{\f2\fnil\fcharset0 Times New Roman;}}
+{\colortbl ;\red0\green0\blue255;\red0\green0\blue0;\red43\green145\blue175;\red0\green128\blue0;\red163\green21\blue21;}
+\viewkind4\uc1\pard\cf1\f0\fs19 August 19, 2016\f1\par
+using\cf2  System;\par
+\cf1 using\cf2  System.Collections.Generic;\par
+\cf1 using\cf2  System.ComponentModel;\par
+\cf1 using\cf2  System.Data;\par
+\cf1 using\cf2  System.Drawing;\par
+\cf1 using\cf2  System.Linq;\par
+\cf1 using\cf2  System.Text;\par
+\cf1 using\cf2  System.Threading.Tasks;\par
+\cf1 using\cf2  System.Windows.Forms;\par
+\cf1 using\cf2  System.Data.SQLite;\par
+\cf1 using\cf2  System.IO;\par
+\par
+\cf1 namespace\cf2  ProjectPratice\par
+\{\par
+    \cf1 public\cf2  \cf1 partial\cf2  \cf1 class\cf2  \cf3 Minute_Editor\cf2  : \cf3 Form\cf2\par
+    \{\par
+        \cf3 Font\cf2  currentFont = \cf1 null\cf2 ;\par
+        \cf3 FontStyle\cf2  currentFontStyle;\par
+        \cf1 string\cf2  minuteDate = \cf1 null\cf2 ;\par
+        \cf1 private\cf2  \cf1 int\cf2  checkPrint; \cf4 //variable that tells if there are more printable pages \cf2\par
+        \cf1 private\cf2  \cf3 SQLiteCommand\cf2  DBcommand;\par
+        \cf1 private\cf2  \cf3 SQLiteConnection\cf2  DBconnect;\par
+        \cf1 private\cf2  \cf3 SQLiteDataReader\cf2  DBreader;\par
+\par
+        \cf1 public\cf2  Minute_Editor()\par
+        \{\par
+            InitializeComponent();\par
+            DBconnect = \cf1 new\cf2  \cf3 SQLiteConnection\cf2 (\cf5 "Data Source= MeetingMgtDB.db;Compress= true;"\cf2 );\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  openToolStripMenuItem1_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 byte\cf2 [] file = \cf1 null\cf2 ;\par
+            \cf3 MinuteArchive\cf2  minuteArchive = \cf1 new\cf2  \cf3 MinuteArchive\cf2 ();\par
+            minuteArchive.retrievingMinuteDetails += MinuteArchive_retrievingMinuteDetails;\par
+            minuteArchive.ShowDialog(\cf1 this\cf2 );\par
+            \cf1 if\cf2  ( minuteArchive.DialogResult==\cf3 DialogResult\cf2 .OK)\par
+            \{\par
+                \cf4 //if (this.Text == null) return;\cf2\par
+                \cf1 try\cf2\par
+                \{\par
+                    \cf1 if\cf2  (DBconnect.State == \cf3 ConnectionState\cf2 .Closed)\par
+                        DBconnect.Open();\par
+                    DBcommand = \cf1 new\cf2  \cf3 SQLiteCommand\cf2 (\cf5 "SELECT * FROM MeetingTable WHERE Date='"\cf2  +\par
+                        minuteDate + \cf5 "'"\cf2 , DBconnect);\par
+                    DBreader = DBcommand.ExecuteReader();\par
+\par
+                    \cf1 while\cf2  (DBreader.Read())\par
+                    \{\par
+                        file = (\cf1 byte\cf2 [])DBreader[\cf5 "Minute"\cf2 ];\par
+                    \}\par
+                    richTextBoxPrintCtrl1.Rtf = \cf3 Encoding\cf2 .UTF8.GetString(file);\par
+                \}\par
+\par
+                \cf1 catch\cf2 (\cf3 Exception\cf2  ex)\par
+                \{\par
+                    \cf3 MessageBox\cf2 .Show(ex.Message);\par
+                \}\par
+\par
+                DBconnect.Close();\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  MinuteArchive_retrievingMinuteDetails(\cf1 object\cf2  sender, \cf3 fetchDataEvent\cf2  e)\par
+        \{\par
+            \cf1 this\cf2 .Text = e.MinuteName;\par
+            minuteDate = e.MinuteDate;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  boldToolStrip_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionLength >0)\par
+            \{\par
+                currentFont = richTextBoxPrintCtrl1.SelectionFont;\par
+                currentFontStyle = richTextBoxPrintCtrl1.SelectionFont.Style;\par
+\par
+                \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont.Bold)\par
+                \{\par
+                    \cf1 this\cf2 .richTextBoxPrintCtrl1.SelectionFont = \cf1 new\cf2  System.Drawing.\cf3 Font\cf2 (currentFont.FontFamily, \par
+                        currentFont.Size, ((System.Drawing.\cf3 FontStyle\cf2 )((currentFontStyle))),\par
+           System.Drawing.\cf3 GraphicsUnit\cf2 .Point, ((\cf1 byte\cf2 )(0)));\par
+                    currentFont = richTextBoxPrintCtrl1.SelectionFont;\par
+                    currentFontStyle = richTextBoxPrintCtrl1.SelectionFont.Style;\par
+\par
+                \}\par
+                \cf1 else\cf2\par
+                \{\par
+                    \cf4 //setFont =\cf2\par
+            \cf1 this\cf2 .richTextBoxPrintCtrl1.SelectionFont = \cf1 new\cf2  System.Drawing.\cf3 Font\cf2 (currentFont.FontFamily,\par
+                        currentFont.Size, ((System.Drawing.\cf3 FontStyle\cf2 )((currentFontStyle | System.Drawing.\cf3 FontStyle\cf2 .Bold))),\par
+            System.Drawing.\cf3 GraphicsUnit\cf2 .Point, ((\cf1 byte\cf2 )(0)));\par
+                    currentFont = richTextBoxPrintCtrl1.SelectionFont;\par
+                    currentFontStyle = richTextBoxPrintCtrl1.SelectionFont.Style;\par
+                \}\par
+\par
+ \par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  toolStripButton2_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont != \cf1 null\cf2 )\par
+            \{\par
+                currentFont = richTextBoxPrintCtrl1.SelectionFont;\par
+                currentFontStyle = richTextBoxPrintCtrl1.SelectionFont.Style;\par
+                \cf3 FontStyle\cf2  setFontStyle = \cf1 new\cf2  \cf3 FontStyle\cf2 ();\par
+\par
+                \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont.Italic == \cf1 true\cf2 )\par
+                \{\par
+                    setFontStyle = currentFontStyle;\par
+                \}\par
+                \cf1 else\cf2\par
+                \{\par
+                    setFontStyle = \cf3 FontStyle\cf2 .Italic;\par
+                \}\par
+\par
+                richTextBoxPrintCtrl1.SelectionFont = \cf1 new\cf2  \cf3 Font\cf2 (\par
+                   currentFont.FontFamily,\par
+                   currentFont.Size,\par
+                   setFontStyle\par
+                );\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  toolStripButton3_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+\par
+            \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont != \cf1 null\cf2 )\par
+            \{\par
+                currentFont = richTextBoxPrintCtrl1.SelectionFont;\par
+                currentFontStyle = richTextBoxPrintCtrl1.SelectionFont.Style;\par
+                \cf3 FontStyle\cf2  setFontStyle = \cf1 new\cf2  \cf3 FontStyle\cf2 ();\par
+\par
+                \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont.Underline == \cf1 true\cf2 )\par
+                \{\par
+                    setFontStyle = currentFontStyle;\par
+                \}\par
+                \cf1 else\cf2\par
+                \{\par
+                    setFontStyle = \cf3 FontStyle\cf2 .Underline;\par
+                \}\par
+\par
+                richTextBoxPrintCtrl1.SelectionFont = \cf1 new\cf2  \cf3 Font\cf2 (\par
+                   currentFont.FontFamily,\par
+                   currentFont.Size,\par
+                   setFontStyle\par
+                );\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  toolStripButton4_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+\par
+            \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont != \cf1 null\cf2 )\par
+            \{\par
+                currentFont = richTextBoxPrintCtrl1.SelectionFont;\par
+                currentFontStyle = richTextBoxPrintCtrl1.SelectionFont.Style;\par
+                \cf3 FontStyle\cf2  setFontStyle = \cf1 new\cf2  \cf3 FontStyle\cf2 ();\par
+\par
+                \cf1 if\cf2  (richTextBoxPrintCtrl1.SelectionFont.Strikeout == \cf1 true\cf2 )\par
+                \{\par
+                    setFontStyle = currentFontStyle;\par
+                \}\par
+                \cf1 else\cf2\par
+                \{\par
+                    setFontStyle = \cf3 FontStyle\cf2 .Strikeout;\par
+                \}\par
+\par
+                richTextBoxPrintCtrl1.SelectionFont = \cf1 new\cf2  \cf3 Font\cf2 (\par
+                   currentFont.FontFamily,\par
+                   currentFont.Size,\par
+                   setFontStyle\par
+                );\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  richTextBoxPrintCtrl1_TextChanged(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+\par
+        \}\par
+\par
+\par
+        \cf1 public\cf2  \cf1 void\cf2  insertPopulatedItemsIntoDB(\cf1 string\cf2  path)\par
+        \{\par
+            \cf1 byte\cf2 [] file = \cf1 null\cf2 ;\par
+            \cf1 try\cf2\par
+            \{\par
+                \cf1 if\cf2  (DBconnect.State.Equals(\cf3 ConnectionState\cf2 .Closed))\par
+                    DBconnect.Open();\par
+                \cf1 using\cf2  (\cf1 var\cf2  stream = \cf1 new\cf2  \cf3 FileStream\cf2 (path, \cf3 FileMode\cf2 .Open, \cf3 FileAccess\cf2 .Read))\par
+                \{\par
+                    \cf1 using\cf2  (\cf1 var\cf2  reader = \cf1 new\cf2  \cf3 BinaryReader\cf2 (stream))\par
+                    \{\par
+                        file = reader.ReadBytes((\cf1 int\cf2 )stream.Length);\par
+                    \}\par
+                \}\par
+                \cf1 string\cf2  query = \cf5 "UPDATE MeetingTable SET Minute=@file WHERE Date='"\cf2  + \cf3 DateTime\cf2 .Now.ToShortDateString() + \cf5 "'"\cf2 ;\par
+                DBcommand = \cf1 new\cf2  \cf3 SQLiteCommand\cf2 (query, DBconnect);\par
+                DBcommand.Parameters.Add(\cf5 "@file"\cf2 , \cf3 DbType\cf2 .Binary, file.Length).Value = file;\par
+                DBcommand.ExecuteNonQuery();\par
+                DBconnect.Close();\par
+\par
+\par
+            \}\par
+\par
+            \cf1 catch\cf2  (\cf3 Exception\cf2  ex)\par
+            \{\par
+                \cf3 MessageBox\cf2 .Show(ex.Message);\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  saveToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 string\cf2  query = \cf1 null\cf2 ;\par
+            \cf1 byte\cf2 [] file = \cf1 null\cf2 ;\par
+\par
+            richTextBoxPrintCtrl1.SaveFile(\cf5 "doc.rtf"\cf2 );\par
+            \par
+            \cf1 try\cf2\par
+            \{\par
+                insertPopulatedItemsIntoDB(\cf5 "doc.rtf"\cf2 );\par
+            \}\par
+\par
+            \cf1 catch\cf2 (\cf3 Exception\cf2  ex)\par
+            \{\par
+                \cf3 MessageBox\cf2 .Show(ex.Message);\par
+            \}\par
+\par
+            DBconnect.Close();\par
+        \}\par
+\par
+\par
+        \cf4 //Event for Zooming in \cf2\par
+        \cf1 private\cf2  \cf1 void\cf2  toolStripButton13_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (richTextBoxPrintCtrl1.ZoomFactor<= 10)\par
+            richTextBoxPrintCtrl1.ZoomFactor++;\par
+        \}\par
+\par
+        \cf4 //Event for Zooming out\cf2\par
+        \cf1 private\cf2  \cf1 void\cf2  toolStripButton14_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (richTextBoxPrintCtrl1.ZoomFactor > 1)\par
+                richTextBoxPrintCtrl1.ZoomFactor--;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  printToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 if\cf2  (printDialog1.ShowDialog(\cf1 this\cf2 ) == \cf3 DialogResult\cf2 .OK)\par
+                printDocument1.Print();\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  printPreviewToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            \cf1 try\cf2\par
+            \{\par
+                printPreviewDialog1.ShowDialog();\par
+            \}\par
+            \cf1 catch\cf2  (\cf3 Exception\cf2  ex)\par
+            \{\par
+                \cf3 MessageBox\cf2 .Show(ex.Message);\par
+            \}\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  printDocument1_PrintPage(\cf1 object\cf2  sender, System.Drawing.Printing.\cf3 PrintPageEventArgs\cf2  e)\par
+        \{\par
+            \cf4 //Store the last character printed\cf2\par
+            checkPrint = richTextBoxPrintCtrl1.Print(checkPrint, richTextBoxPrintCtrl1.TextLength, e);\par
+\par
+            \cf4 //check if there are more pages to be printed\cf2\par
+            \cf1 if\cf2  (checkPrint < richTextBoxPrintCtrl1.TextLength)\par
+                e.HasMorePages = \cf1 true\cf2 ;\par
+            \cf1 else\cf2\par
+                e.HasMorePages = \cf1 false\cf2 ;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  printDocument1_BeginPrint(\cf1 object\cf2  sender, System.Drawing.Printing.\cf3 PrintEventArgs\cf2  e)\par
+        \{\par
+            checkPrint = 0;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  pageSetupToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            pageSetupDialog1.ShowDialog();\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  newToolStripMenuItem_Click(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+            richTextBoxPrintCtrl1.Text = \cf1 null\cf2 ;\par
+        \}\par
+\par
+        \cf1 private\cf2  \cf1 void\cf2  Minute_Editor_Load(\cf1 object\cf2  sender, \cf3 EventArgs\cf2  e)\par
+        \{\par
+\par
+        \}\par
+    \}\par
+\}\par
+\cf0\f2\fs29\par
+}
+ 
